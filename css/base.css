@@ -1,0 +1,236 @@
+/* ============================================================
+   ARASAKA NAV — Base Design System
+   Cyberpunk 2077 authentic color palette, typography, animations
+   ============================================================ */
+
+/* --- CP2077 Design Tokens --- */
+:root {
+  --cp-yellow: #FCEE09;
+  --cp-cyan: #00F5FF;
+  --cp-red: #FF3D3D;
+  --cp-green: #39FF14;
+  --cp-orange: #FF8C00;
+  --cp-bg: #050507;
+  --cp-panel: rgba(5,5,7,0.96);
+  --cp-panel-border: rgba(252,238,9,0.18);
+  --cp-text: #e0e0e0;
+  --cp-text-dim: #7a7a7a;
+  --cp-text-bright: #ffffff;
+
+  /* Clip-path: cut-corner geometry */
+  --clip-lg: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+  --clip-md: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+  --clip-sm: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
+
+  /* Typography */
+  --font-ui: 'Rajdhani', sans-serif;
+  --font-mono: 'Share Tech Mono', monospace;
+  --font-hud: 'Orbitron', sans-serif;
+
+  /* Spacing */
+  --panel-w-left: 320px;
+  --panel-w-right: 230px;
+  --topbar-h: 52px;
+  --bottombar-h: 38px;
+}
+
+/* --- Reset --- */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: var(--cp-bg);
+  color: var(--cp-text);
+  font-family: var(--font-ui);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --- Scanlines Overlay --- */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0,0,0,0.06) 0px,
+    rgba(0,0,0,0.06) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  mix-blend-mode: overlay;
+}
+
+/* --- Vignette Overlay --- */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9997;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 55%,
+    rgba(0,0,0,0.45) 100%
+  );
+}
+
+/* --- Scrollbar Styling --- */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(5,5,7,0.5);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(252,238,9,0.25);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(252,238,9,0.5);
+}
+
+/* --- Selection --- */
+::selection {
+  background: rgba(252,238,9,0.3);
+  color: var(--cp-yellow);
+}
+
+/* ============================================================
+   KEYFRAME ANIMATIONS
+   ============================================================ */
+
+/* Glitch effect for logo title */
+@keyframes glitch {
+  0%, 92%, 100% {
+    clip-path: inset(0 0 0 0);
+    transform: translate(0);
+  }
+  93% {
+    clip-path: inset(20% 0 30% 0);
+    transform: translate(-3px, 1px);
+    color: var(--cp-cyan);
+  }
+  94% {
+    clip-path: inset(50% 0 10% 0);
+    transform: translate(3px, -1px);
+    color: var(--cp-yellow);
+  }
+  95% {
+    clip-path: inset(10% 0 60% 0);
+    transform: translate(-2px, 2px);
+    color: var(--cp-red);
+  }
+  96% {
+    clip-path: inset(40% 0 20% 0);
+    transform: translate(2px, -2px);
+    color: var(--cp-cyan);
+  }
+  97% {
+    clip-path: inset(0 0 0 0);
+    transform: translate(0);
+  }
+}
+
+/* Blink for status dots */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* Pulse for diamond markers */
+@keyframes pulse-mk {
+  0%, 100% { transform: rotate(45deg) scale(1); }
+  50% { transform: rotate(45deg) scale(1.25); }
+}
+
+/* Ping ring expansion */
+@keyframes ping {
+  0% {
+    transform: rotate(45deg) scale(1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: rotate(45deg) scale(2.6);
+    opacity: 0;
+  }
+}
+
+/* Boot screen flicker */
+@keyframes boot-flicker {
+  0% { opacity: 0; }
+  5% { opacity: 0.8; }
+  10% { opacity: 0.2; }
+  15% { opacity: 0.9; }
+  20% { opacity: 0.4; }
+  30% { opacity: 1; }
+  100% { opacity: 1; }
+}
+
+/* Fade in */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* HUD slide down */
+@keyframes slideDown {
+  from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* Progress bar fill */
+@keyframes progressFill {
+  from { width: 0%; }
+}
+
+/* Scan line sweep for boot */
+@keyframes scanSweep {
+  0% { top: -2px; }
+  100% { top: 100%; }
+}
+
+/* --- Base Typography --- */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--cp-yellow);
+}
+
+a {
+  color: var(--cp-cyan);
+  text-decoration: none;
+}
+
+input, button, select, textarea {
+  font-family: var(--font-ui);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  border: none;
+  outline: none;
+  background: none;
+  color: var(--cp-text);
+}
+
+/* --- Utility Classes --- */
+.text-yellow { color: var(--cp-yellow); }
+.text-cyan { color: var(--cp-cyan); }
+.text-red { color: var(--cp-red); }
+.text-green { color: var(--cp-green); }
+.text-orange { color: var(--cp-orange); }
+.text-dim { color: var(--cp-text-dim); }
+.font-mono { font-family: var(--font-mono); }
+.font-hud { font-family: var(--font-hud); }
+
+.hidden { display: none !important; }

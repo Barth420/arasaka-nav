@@ -1,0 +1,442 @@
+/* ============================================================
+   ARASAKA NAV — Map Styles
+   CartoDB Dark Matter base + minimal filter + CP2077 overlays
+   ============================================================ */
+
+/* --- Minimal tile filter ---
+   CartoDB Dark is already black with white/grey roads.
+   Just add a very subtle warm tint so it's not pure grey.
+   ------------------------------------------------------------ */
+.leaflet-tile-pane {
+  filter: saturate(0.4) contrast(1.1);
+  transition: filter 0.5s ease;
+}
+
+.leaflet-tile-pane.night-plus {
+  filter: brightness(0.7) saturate(0.2) contrast(1.2);
+}
+
+/* --- Edge vignette --- */
+#map::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 401;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at 50% 50%,
+    transparent 50%,
+    rgba(0, 0, 0, 0.25) 100%
+  );
+}
+
+/* --- Leaflet control overrides --- */
+.leaflet-control-zoom {
+  border: none !important;
+  margin: 12px !important;
+}
+
+.leaflet-control-zoom a {
+  background: var(--cp-panel) !important;
+  color: var(--cp-yellow) !important;
+  border: 1px solid rgba(252,238,9,0.15) !important;
+  border-radius: 0 !important;
+  clip-path: var(--clip-sm) !important;
+  width: 32px !important;
+  height: 32px !important;
+  line-height: 32px !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  transition: background 0.2s !important;
+}
+
+.leaflet-control-zoom a:hover {
+  background: rgba(252,238,9,0.08) !important;
+}
+
+.leaflet-control-zoom-in {
+  margin-bottom: 2px !important;
+}
+
+/* --- Attribution --- */
+.leaflet-control-attribution {
+  background: rgba(5,5,7,0.85) !important;
+  color: var(--cp-text-dim) !important;
+  font-family: var(--font-mono) !important;
+  font-size: 8px !important;
+  letter-spacing: 0.5px !important;
+  border-radius: 0 !important;
+  padding: 2px 8px !important;
+}
+
+.leaflet-control-attribution a {
+  color: rgba(252,238,9,0.5) !important;
+}
+
+/* --- Popup styling --- */
+.leaflet-popup-content-wrapper {
+  background: var(--cp-panel) !important;
+  color: var(--cp-text) !important;
+  border: 1px solid rgba(252,238,9,0.15) !important;
+  border-radius: 0 !important;
+  clip-path: var(--clip-md) !important;
+  box-shadow: 0 0 20px rgba(0,0,0,0.5) !important;
+  font-family: var(--font-ui) !important;
+  font-size: 11px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1px !important;
+}
+
+.leaflet-popup-tip {
+  background: var(--cp-panel) !important;
+  border: 1px solid rgba(252,238,9,0.15) !important;
+  box-shadow: none !important;
+}
+
+.leaflet-popup-close-button {
+  color: var(--cp-yellow) !important;
+  font-size: 16px !important;
+}
+
+/* --- Tooltip styling --- */
+.leaflet-tooltip {
+  background: var(--cp-panel) !important;
+  color: var(--cp-yellow) !important;
+  border: 1px solid rgba(252,238,9,0.2) !important;
+  border-radius: 0 !important;
+  font-family: var(--font-ui) !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1.5px !important;
+  padding: 4px 10px !important;
+  box-shadow: 0 0 12px rgba(0,0,0,0.4) !important;
+}
+
+.leaflet-tooltip-top::before {
+  border-top-color: rgba(252,238,9,0.2) !important;
+}
+.leaflet-tooltip-bottom::before {
+  border-bottom-color: rgba(252,238,9,0.2) !important;
+}
+.leaflet-tooltip-left::before {
+  border-left-color: rgba(252,238,9,0.2) !important;
+}
+.leaflet-tooltip-right::before {
+  border-right-color: rgba(252,238,9,0.2) !important;
+}
+
+/* --- Marker cluster overrides --- */
+.marker-cluster {
+  background: rgba(252,238,9,0.15) !important;
+}
+
+.marker-cluster div {
+  background: rgba(252,238,9,0.3) !important;
+  color: var(--cp-yellow) !important;
+  font-family: var(--font-hud) !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  border-radius: 0 !important;
+  transform: rotate(45deg);
+}
+
+.marker-cluster div span {
+  display: block;
+  transform: rotate(-45deg);
+}
+
+/* --- Remove all Leaflet border-radius --- */
+.leaflet-container {
+  font-family: var(--font-ui) !important;
+}
+
+.leaflet-bar {
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+/* --- Map container relative for overlays --- */
+#map-container {
+  position: relative;
+}
+
+#map {
+  position: relative;
+}
+
+/* --- POI Marker Styles --- */
+.mk-poi-wrap {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+}
+
+.mk-poi-diamond {
+  position: absolute;
+  top: 4px; left: 4px;
+  width: 20px; height: 20px;
+  transform: rotate(45deg);
+  border: 1.5px solid;
+  background: rgba(5,5,7,0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mk-poi-glyph {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 13px;
+  line-height: 1;
+  z-index: 2;
+  filter: drop-shadow(0 0 3px currentColor);
+}
+
+/* POI type colors */
+.mk-poi-wrap.poi-hospital .mk-poi-diamond {
+  border-color: #FF3D3D;
+  box-shadow: 0 0 10px rgba(255,61,61,0.5);
+}
+.mk-poi-wrap.poi-hospital .mk-poi-glyph { color: #FF3D3D; }
+
+.mk-poi-wrap.poi-food .mk-poi-diamond {
+  border-color: #FF8C00;
+  box-shadow: 0 0 8px rgba(255,140,0,0.4);
+}
+.mk-poi-wrap.poi-food .mk-poi-glyph { color: #FF8C00; }
+
+/* Cafe — distinct teal color */
+.mk-poi-wrap.poi-cafe .mk-poi-diamond {
+  border-color: #7DF9FF;
+  box-shadow: 0 0 8px rgba(125,249,255,0.4);
+}
+.mk-poi-wrap.poi-cafe .mk-poi-glyph { color: #7DF9FF; }
+
+.mk-poi-wrap.poi-clothing .mk-poi-diamond {
+  border-color: #00F5FF;
+  box-shadow: 0 0 8px rgba(0,245,255,0.4);
+}
+.mk-poi-wrap.poi-clothing .mk-poi-glyph { color: #00F5FF; }
+
+.mk-poi-wrap.poi-fuel .mk-poi-diamond {
+  border-color: #39FF14;
+  box-shadow: 0 0 8px rgba(57,255,20,0.4);
+}
+.mk-poi-wrap.poi-fuel .mk-poi-glyph { color: #39FF14; }
+
+.mk-poi-wrap.poi-police .mk-poi-diamond {
+  border-color: #FCEE09;
+  box-shadow: 0 0 8px rgba(252,238,9,0.4);
+}
+.mk-poi-wrap.poi-police .mk-poi-glyph { color: #FCEE09; }
+
+/* --- Icon class overrides for special glyphs --- */
+
+/* Red cross '+' for medical — large, bold, perfectly centered */
+.mk-poi-glyph.poi-icon-cross {
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1;
+  font-family: var(--font-hud);
+  letter-spacing: -1px;
+}
+
+/* Star '★' for police — slightly larger */
+.mk-poi-glyph.poi-icon-star {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* Emoji icons — slightly smaller to fit in diamond */
+.mk-poi-glyph.poi-icon-emoji {
+  font-size: 11px;
+  filter: none;   /* emojis don't need drop-shadow */
+}
+
+/* --- Route polyline glow pulse --- */
+@keyframes route-pulse {
+  0%, 100% { opacity: 0.95; }
+  50%       { opacity: 0.7; }
+}
+
+/* ============================================================
+   YOU ARE HERE — Location Marker
+   ============================================================ */
+.mk-location-wrap {
+  position: relative;
+  width: 20px;
+  height: 20px;
+}
+
+.mk-location-dot {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 10px; height: 10px;
+  background: var(--cp-cyan);
+  border-radius: 50%;
+  box-shadow:
+    0 0 6px rgba(0,245,255,0.8),
+    0 0 16px rgba(0,245,255,0.4);
+  z-index: 2;
+}
+
+.mk-location-ring {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px; height: 20px;
+  border: 2px solid rgba(0,245,255,0.6);
+  border-radius: 50%;
+  animation: location-pulse 2.4s ease-out infinite;
+}
+
+@keyframes location-pulse {
+  0%   { transform: translate(-50%,-50%) scale(0.5); opacity: 0.9; }
+  100% { transform: translate(-50%,-50%) scale(2.0); opacity: 0; }
+}
+
+/* ============================================================
+   POI MARKER CLUSTER (CP2077 style)
+   ============================================================ */
+.mk-poi-cluster {
+  width: 32px;
+  height: 32px;
+  background: rgba(5,5,7,0.92);
+  border: 1.5px solid var(--cp-yellow);
+  box-shadow:
+    0 0 8px rgba(252,238,9,0.3),
+    0 0 2px rgba(252,238,9,0.6) inset;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(45deg);
+}
+
+.mk-poi-cluster span {
+  font-family: var(--font-hud);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--cp-yellow);
+  transform: rotate(-45deg);
+  display: block;
+  line-height: 1;
+}
+
+/* ============================================================
+   LEAFLET POPUP OVERRIDES — CP2077 style
+   ============================================================ */
+
+/* Outer wrapper — reset Leaflet defaults */
+.cp-poi-popup .leaflet-popup-content-wrapper {
+  background: rgba(5, 5, 7, 0.96);
+  border: 1px solid rgba(0, 245, 255, 0.35);
+  border-radius: 0;
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+  box-shadow:
+    0 0 18px rgba(0,245,255,0.15),
+    0 0 4px rgba(0,245,255,0.08) inset;
+  padding: 0;
+  color: var(--cp-text);
+}
+
+/* Tip arrow */
+.cp-poi-popup .leaflet-popup-tip-container { display: none; }
+
+/* Content padding */
+.cp-poi-popup .leaflet-popup-content {
+  margin: 0;
+  width: 200px !important;
+}
+
+/* Close button */
+.cp-poi-popup .leaflet-popup-close-button {
+  color: var(--cp-cyan) !important;
+  font-size: 16px;
+  padding: 4px 8px !important;
+  top: 2px !important;
+  right: 2px !important;
+  background: transparent !important;
+}
+
+/* ---- Popup inner layout ---- */
+.poi-popup {
+  padding: 12px 12px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.poi-popup-glyph {
+  font-size: 20px;
+  line-height: 1;
+  text-align: center;
+}
+
+.poi-popup-info {
+  border-left: 2px solid rgba(0,245,255,0.3);
+  padding-left: 8px;
+}
+
+.poi-popup-name {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--cp-text);
+  letter-spacing: 1.5px;
+  line-height: 1.3;
+}
+
+.poi-popup-type {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  color: var(--cp-cyan);
+  letter-spacing: 2px;
+  margin-top: 2px;
+  opacity: 0.8;
+}
+
+.poi-popup-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.poi-popup-btn {
+  font-family: var(--font-ui);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  padding: 6px 4px;
+  cursor: pointer;
+  transition: background 0.15s, box-shadow 0.15s;
+  clip-path: polygon(4px 0%, 100% 0%, calc(100% - 4px) 100%, 0% 100%);
+}
+
+.poi-popup-btn.origin {
+  background: rgba(252, 238, 9, 0.1);
+  border: 1px solid rgba(252, 238, 9, 0.4);
+  color: var(--cp-yellow);
+}
+
+.poi-popup-btn.origin:hover {
+  background: rgba(252, 238, 9, 0.2);
+  box-shadow: 0 0 8px rgba(252,238,9,0.25);
+}
+
+.poi-popup-btn.dest {
+  background: rgba(0, 245, 255, 0.08);
+  border: 1px solid rgba(0, 245, 255, 0.3);
+  color: var(--cp-cyan);
+}
+
+.poi-popup-btn.dest:hover {
+  background: rgba(0, 245, 255, 0.18);
+  box-shadow: 0 0 8px rgba(0,245,255,0.2);
+}

@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ARASAKA NAV — Cyberpunk Navigation System</title>
+  <meta name="description" content="A Cyberpunk 2077-inspired tactical navigation web app with real-time routing, turn-by-turn directions, POI system, and simulation mode. Powered by OpenStreetMap, OpenRouteService, and Leaflet.js.">
+  <meta name="theme-color" content="#050507">
+  <meta name="author" content="Arasaka Navigation Systems">
+
+  <!-- Open Graph / Social Preview -->
+  <meta property="og:type"        content="website">
+  <meta property="og:title"       content="ARASAKA NAV — Cyberpunk Navigation System">
+  <meta property="og:description" content="A Cyberpunk 2077-inspired tactical navigation web app with real-time routing, turn-by-turn directions, and simulation mode.">
+  <meta property="og:image"       content="">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.css" />
+
+  <!-- Google Fonts: Rajdhani, Share Tech Mono, Orbitron -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Orbitron:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- App CSS -->
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/map.css">
+</head>
+<body>
+
+  <!-- ============================================================
+       ORS API KEY MODAL
+       ============================================================ -->
+  <div id="api-modal" style="display:none;" role="dialog" aria-modal="true" aria-label="API Key Setup">
+    <div class="modal-box">
+      <h1 class="modal-title">ARASAKA NAV</h1>
+      <p class="modal-subtitle">TACTICAL NAVIGATION SYSTEM v1.0</p>
+      <p class="modal-desc">
+        Enter your <a href="https://openrouteservice.org/dev/#/signup" target="_blank" rel="noopener noreferrer">OpenRouteService API key</a>
+        to enable live routing — free, no credit card required, 2,000 requests/day.
+        <br>Or use Demo Mode to explore the UI without any key.
+      </p>
+      <input
+        type="text"
+        id="ors-key-input"
+        class="modal-input"
+        placeholder="Paste ORS API key here..."
+        autocomplete="off"
+        spellcheck="false"
+        aria-label="OpenRouteService API Key"
+      >
+      <div id="modal-error" class="modal-error" role="alert"></div>
+      <button id="modal-submit" class="modal-btn">INITIALIZE SYSTEMS</button>
+      <button id="modal-demo"   class="modal-btn modal-btn-secondary">⚡ DEMO MODE — NO KEY REQUIRED</button>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       BOOT SCREEN
+       ============================================================ -->
+  <div id="boot-screen" role="status" aria-label="System boot sequence">
+    <div class="boot-content">
+      <div class="boot-title">ARASAKA NAV // BOOT SEQUENCE</div>
+      <div id="boot-lines"></div>
+      <div class="boot-progress">
+        <div id="boot-progress-fill" class="boot-progress-fill"></div>
+        <div class="boot-scan-line"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MAIN APPLICATION LAYOUT
+       ============================================================ -->
+  <div id="app">
+
+    <!-- ── TOP BAR ── -->
+    <header id="topbar" role="banner">
+      <!-- Brand Block -->
+      <div class="brand-block">
+        <div class="brand-slash"></div>
+        <div class="brand-text">
+          <span class="brand-title" aria-label="Arasaka Nav">ARASAKA NAV</span>
+          <span class="brand-subtitle">TACTICAL NAVIGATION SYSTEM</span>
+        </div>
+      </div>
+
+      <!-- Stat Cells -->
+      <div class="stat-cells" role="status" aria-label="Route statistics">
+        <div class="stat-cell">
+          <span class="stat-label">ETA</span>
+          <span class="stat-value" id="stat-eta" title="Estimated travel time">--:--</span>
+        </div>
+        <div class="stat-cell">
+          <span class="stat-label">DISTANCE</span>
+          <span class="stat-value" id="stat-dist" title="Total route distance">---</span>
+        </div>
+        <div class="stat-cell">
+          <span class="stat-label">TRAFFIC</span>
+          <span class="stat-value" id="stat-traffic" style="color:var(--cp-green);" title="Traffic condition on selected route">CLEAR</span>
+        </div>
+        <div class="stat-cell">
+          <span class="stat-label">STEP</span>
+          <span class="stat-value" id="stat-step-text" title="Current navigation step">--/--</span>
+        </div>
+      </div>
+
+      <!-- Right: Mode Badge + Clock -->
+      <div class="topbar-right">
+        <div class="mode-badge" role="status" aria-label="System mode">
+          <span class="dot" aria-hidden="true"></span>
+          <span id="mode-label">IDLE</span>
+        </div>
+        <div class="live-clock" id="live-clock" aria-label="Current time">00:00:00</div>
+      </div>
+    </header>
+
+    <!-- ── LEFT PANEL ── -->
+    <aside id="left-panel" aria-label="Route planner">
+      <!-- Route Planner Header -->
+      <div class="section-header">
+        <span class="section-title">ROUTE PLANNER</span>
+        <button class="btn-cp danger" id="clear-btn" title="Clear all markers and routes (Esc)">CLEAR</button>
+      </div>
+
+      <!-- Search Block -->
+      <div class="search-block">
+        <!-- Origin Row -->
+        <div class="search-row">
+          <div class="search-node origin-node" aria-hidden="true"></div>
+          <input
+            type="text"
+            id="origin-input"
+            class="search-input"
+            placeholder="Search origin..."
+            aria-label="Origin location"
+            autocomplete="off"
+            spellcheck="false"
+          >
+          <div id="origin-results" class="search-results" role="listbox" aria-label="Origin suggestions"></div>
+        </div>
+
+        <!-- Connector + Swap -->
+        <div class="search-swap-row">
+          <div class="search-connector" aria-hidden="true"></div>
+          <button class="swap-btn" id="swap-btn" title="Swap origin and destination" aria-label="Swap origin and destination">⇅</button>
+        </div>
+
+        <!-- Destination Row -->
+        <div class="search-row">
+          <div class="search-node dest-node" aria-hidden="true"></div>
+          <input
+            type="text"
+            id="dest-input"
+            class="search-input"
+            placeholder="Search destination..."
+            aria-label="Destination location"
+            autocomplete="off"
+            spellcheck="false"
+          >
+          <div id="dest-results" class="search-results" role="listbox" aria-label="Destination suggestions"></div>
+        </div>
+
+        <!-- Map click hint + Use My Location -->
+        <div class="search-hint">◈ CLICK MAP TO PLACE MARKERS</div>
+        <button id="use-location-btn" class="use-location-btn disabled" title="Location not yet acquired">
+          ◎ USE MY LOCATION AS ORIGIN
+        </button>
+      </div>
+
+      <!-- Route Cards (hidden until routes load) -->
+      <div id="route-cards" class="route-cards hidden" role="list" aria-label="Route options"></div>
+
+      <!-- Begin Navigation Button (hidden until routes load) -->
+      <button id="begin-nav-btn" class="begin-nav-btn hidden" aria-label="Begin turn-by-turn navigation">
+        ▶ BEGIN NAVIGATION
+      </button>
+
+      <!-- Turn-by-Turn Panel -->
+      <div class="section-header" style="margin-top:4px;">
+        <span class="section-title">TURN-BY-TURN</span>
+      </div>
+      <div id="tbt-panel" class="tbt-panel" role="list" aria-label="Turn by turn directions">
+        <div class="tbt-placeholder">SET ORIGIN &amp; DESTINATION<br><span>TO COMPUTE ROUTE</span></div>
+      </div>
+    </aside>
+
+    <!-- ── MAP CONTAINER ── -->
+    <main id="map-container" aria-label="Interactive navigation map">
+      <div id="map"></div>
+    </main>
+
+    <!-- ── RIGHT PANEL ── -->
+    <aside id="right-panel" aria-label="Map controls and live stats">
+      <!-- Map Layers -->
+      <div class="section-header">
+        <span class="section-title">MAP LAYERS</span>
+      </div>
+      <div class="layer-toggles">
+        <div class="layer-toggle-row" title="Toggle enhanced night mode">
+          <span class="layer-toggle-label">NIGHT MODE+</span>
+          <div class="diamond-toggle" id="toggle-night" role="switch" aria-checked="false" aria-label="Night mode"></div>
+        </div>
+        <div class="layer-toggle-row" title="Toggle traffic coloring on route">
+          <span class="layer-toggle-label">TRAFFIC LAYER</span>
+          <div class="diamond-toggle on" id="toggle-traffic" role="switch" aria-checked="true" aria-label="Traffic layer"></div>
+        </div>
+        <div class="layer-toggle-row" title="Toggle points of interest markers">
+          <span class="layer-toggle-label">POI MARKERS</span>
+          <div class="diamond-toggle on" id="toggle-poi" role="switch" aria-checked="true" aria-label="POI markers"></div>
+        </div>
+      </div>
+
+      <!-- Live Stats -->
+      <div class="section-header">
+        <span class="section-title">LIVE STATS</span>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span class="sc-label">ZOOM</span>
+          <span class="sc-value" id="stat-zoom" title="Current map zoom level">5</span>
+        </div>
+        <div class="stat-card">
+          <span class="sc-label">BEARING</span>
+          <span class="sc-value" id="stat-bearing" title="Direction from origin to destination">---</span>
+        </div>
+        <div class="stat-card">
+          <span class="sc-label">STEPS</span>
+          <span class="sc-value" id="stat-step-count" title="Number of turn-by-turn steps">--</span>
+        </div>
+        <div class="stat-card">
+          <span class="sc-label">PROGRESS</span>
+          <span class="sc-value" id="stat-progress" title="Navigation progress">0%</span>
+        </div>
+      </div>
+
+      <!-- Speedometer (hidden until navigation starts) -->
+      <div class="section-header hidden" id="speedometer-section">
+        <span class="section-title">SPEEDOMETER</span>
+      </div>
+      <div id="speed-meter" class="speed-meter hidden" aria-label="Current simulated speed">
+        <span class="speed-value" id="speed-value">0</span>
+        <span class="speed-unit">KM/H</span>
+      </div>
+
+      <!-- Keyboard Shortcuts Reference -->
+      <div class="section-header">
+        <span class="section-title">SHORTCUTS</span>
+      </div>
+      <div class="shortcuts-list">
+        <div class="shortcut-row"><span class="sk-key">ESC</span><span class="sk-desc">Clear / Stop nav</span></div>
+        <div class="shortcut-row"><span class="sk-key">←→</span><span class="sk-desc">Previous / Next step</span></div>
+        <div class="shortcut-row"><span class="sk-key">S</span><span class="sk-desc">Toggle simulation</span></div>
+        <div class="shortcut-row"><span class="sk-key">L</span><span class="sk-desc">Toggle left panel</span></div>
+        <div class="shortcut-row"><span class="sk-key">R</span><span class="sk-desc">Toggle right panel</span></div>
+      </div>
+    </aside>
+
+    <!-- ── BOTTOM BAR ── -->
+    <footer id="bottombar" role="contentinfo" aria-label="Map status bar">
+      <div class="bottom-cell">
+        <span class="bottom-label">COORDS</span>
+        <span class="bottom-value" id="bottom-coords" title="Map center coordinates">20.59370, 78.96290</span>
+      </div>
+      <div class="bottom-cell">
+        <span class="bottom-label">ZOOM</span>
+        <span class="bottom-value" id="bottom-zoom" title="Current zoom level">5</span>
+      </div>
+      <div class="bottom-cell">
+        <span class="bottom-label">MAP</span>
+        <span class="bottom-value" style="color:var(--cp-green);" title="Map tile provider">CARTO</span>
+      </div>
+      <div class="bottom-cell">
+        <span class="bottom-label">ROUTING</span>
+        <span class="bottom-value" id="bottom-api-mode" style="color:var(--cp-orange);" title="Routing engine mode">DEMO</span>
+      </div>
+
+      <!-- Traffic Legend -->
+      <div class="traffic-legend" aria-label="Traffic color legend">
+        <div class="legend-item">
+          <div class="legend-dot" style="background:var(--cp-green);" aria-hidden="true"></div>
+          <span>FREE</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:var(--cp-orange);" aria-hidden="true"></div>
+          <span>MODERATE</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:var(--cp-red);" aria-hidden="true"></div>
+          <span>HEAVY</span>
+        </div>
+      </div>
+    </footer>
+
+  </div><!-- #app -->
+
+  <!-- ============================================================
+       NAVIGATION HUD OVERLAY
+       ============================================================ -->
+  <div id="nav-hud" role="status" aria-label="Navigation HUD">
+    <div class="hud-main">
+      <div class="hud-maneuver-box" id="hud-icon" aria-label="Next maneuver">↑</div>
+      <div class="hud-info">
+        <div class="hud-distance" id="hud-dist">---</div>
+        <div class="hud-road"     id="hud-road">---</div>
+        <div class="hud-next"     id="hud-next">---</div>
+      </div>
+    </div>
+    <div class="hud-strip">
+      <div class="hud-stat">
+        <span class="hud-stat-label">ETA</span>
+        <span class="hud-stat-value" id="hud-eta">--:--</span>
+      </div>
+      <div class="hud-stat">
+        <span class="hud-stat-label">REMAINING</span>
+        <span class="hud-stat-value" id="hud-remain">---</span>
+      </div>
+      <div class="hud-stat">
+        <span class="hud-stat-label">ARRIVAL</span>
+        <span class="hud-stat-value" id="hud-arrival">--:--</span>
+      </div>
+      <div class="hud-stat">
+        <span class="hud-stat-label">SPEED</span>
+        <span class="hud-stat-value" id="hud-speed">0 KM/H</span>
+      </div>
+      <div class="hud-controls">
+        <button class="hud-btn sim"  id="hud-sim-btn"  title="Start/pause route simulation (S)">SIM</button>
+        <button class="hud-btn stop" id="hud-stop-btn" title="Stop navigation (Esc)">STOP</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       PANEL TOGGLE BUTTONS
+       ============================================================ -->
+  <button class="panel-toggle" id="left-toggle"  aria-label="Toggle left panel (L)" title="Toggle left panel (L)">◂</button>
+  <button class="panel-toggle" id="right-toggle" aria-label="Toggle right panel (R)" title="Toggle right panel (R)">▸</button>
+
+  <!-- ============================================================
+       TOAST CONTAINER
+       ============================================================ -->
+  <div id="toast-container" role="alert" aria-live="polite"></div>
+
+  <!-- ============================================================
+       SCRIPTS (CDN + App — order matters)
+       ============================================================ -->
+  <!-- Leaflet JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.js"></script>
+
+  <!-- App JS -->
+  <script src="js/utils.js"></script>
+  <script src="js/geocode.js"></script>
+  <script src="js/map.js"></script>
+  <script src="js/routing.js"></script>
+  <script src="js/navigation.js"></script>
+  <script src="js/poi.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+</html>
